@@ -1,7 +1,7 @@
 {
-  "name": "you-and-me-backend",
+  "name": "me-and-you-backend",
   "version": "1.0.0",
-  "description": "Backend for You & Me app",
+  "description": "Backend for Me and You app",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -20,6 +20,6 @@
     "socket.io": "^4.6.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^2.0.22"
   }
 }
