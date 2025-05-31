@@ -133,33 +133,63 @@ module.exports = (server) => {
     // Handle new messages
     socket.on('send_message', async (messageData) => {
       try {
+        console.log('Received message data:', messageData);
+        console.log('From user:', socket.user.username);
+        
+        // Validate message data
+        if (!messageData.text) {
+          throw new Error('Message text is required');
+        }
+
         const otherUsername = socket.user.username === 'bhupesh' ? 'pihu' : 'bhupesh';
         const otherUser = await User.findOne({ username: otherUsername });
 
         if (!otherUser) {
+          console.error('Recipient not found:', otherUsername);
           throw new Error('Recipient not found');
         }
 
-        const message = {
+        // Create message document
+        const message = new Message({
           text: messageData.text,
           sender: socket.user._id,
           recipient: otherUser._id,
           emoji: messageData.emoji,
-          timestamp: messageData.timestamp || new Date(),
-          tempId: messageData.tempId
-        };
+          timestamp: messageData.timestamp || new Date()
+        });
 
-        // Only broadcast to other clients, not the sender
-        socket.broadcast.emit('receive_message', message);
+        // Save message to database
+        const savedMessage = await message.save();
+        console.log('Message saved successfully:', savedMessage);
+
+        // Populate sender and recipient details
+        const populatedMessage = await Message.findById(savedMessage._id)
+          .populate('sender', 'username displayName')
+          .populate('recipient', 'username displayName');
+
+        // Broadcast to other clients
+        socket.broadcast.emit('receive_message', {
+          ...populatedMessage.toObject(),
+          tempId: messageData.tempId
+        });
         
         // Send confirmation back to sender with the same tempId
         socket.emit('message_sent', {
-          ...message,
+          ...populatedMessage.toObject(),
           tempId: messageData.tempId
         });
       } catch (error) {
-        console.error('Error sending message:', error);
-        socket.emit('error', { message: 'Error sending message' });
+        console.error('Error in send_message handler:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+          code: error.code
+        });
+        socket.emit('error', { 
+          message: 'Error sending message',
+          details: error.message 
+        });
       }
     });
 
