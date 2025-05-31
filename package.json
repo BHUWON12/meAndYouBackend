@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backend for Me and You app",
   "main": "backend/src/index.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "start": "node backend/src/index.js",
     "dev": "nodemon backend/src/index.js",
